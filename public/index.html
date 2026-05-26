@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sven Status Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="join-screen">
+    <h1>Sven Status Board</h1>
+    <input type="text" id="name-input" placeholder="Your name">
+    <button id="join-btn">Connect</button>
+    <p id="join-error" class="error-msg"></p>
+  </div>
+
+  <div id="main-view">
+    <div id="top-bar">
+      <!-- JS renders client badges here -->
+    </div>
+    <div id="content-row">
+      <div id="button-area">
+        <!-- JS renders button groups here -->
+      </div>
+      <div id="history-panel">
+        <h3>History</h3>
+        <div id="history-list">
+          <!-- JS renders history entries here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

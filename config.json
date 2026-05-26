@@ -1,0 +1,69 @@
+{
+  "screenGlow": true,
+  "groups": [
+    {
+      "name": "Getränke",
+      "glowDuration": 5,
+      "color": "#4ade80",
+      "buttons": [
+        { "id": "water-gas",   "label": "Wasser mit Kohlensäure" },
+        { "id": "water-nogas", "label": "Water without gas" },
+        { "id": "coke",        "label": "Coke" },
+        { "id": "coke-zero",   "label": "Coke Zero" },
+        { "id": "shorle",      "label": "Shorle" },
+        { "id": "sprite",      "label": "Sprite" },
+        { "id": "beer",        "label": "Beer" },
+        { "id": "kombucha",    "label": "Kombucha" }
+      ]
+    },
+    {
+      "name": "Audio",
+      "glowDuration": 0,
+      "color": "#60a5fa",
+      "buttons": [
+        { "id": "partner-louder",  "label": "Partner louder" },
+        { "id": "partner-quieter", "label": "Partner quieter" },
+        { "id": "hall-louder",     "label": "Sound Hall louder" },
+        { "id": "hall-quieter",    "label": "Sound Hall quieter" }
+      ]
+    },
+    {
+      "name": "Technical Issue",
+      "glowDuration": 0,
+      "color": "#f87171",
+      "buttons": [
+        { "id": "help", "label": "Help!!!" }
+      ]
+    },
+    {
+      "name": "Camera Positions",
+      "glowDuration": 10,
+      "color": "#facc15",
+      "buttons": [
+        { "id": "timeout-left",  "label": "Show timeout left" },
+        { "id": "timeout-right", "label": "Show timeout right" },
+        { "id": "line-left",     "label": "Show Line left" },
+        { "id": "line-right",    "label": "Show Line right" }
+      ]
+    },
+    {
+      "name": "General",
+      "glowDuration": 15,
+      "color": "#a78bfa",
+      "buttons": [
+        { "id": "break",  "label": "Taking a break" },
+        { "id": "yes",    "label": "Yes" },
+        { "id": "no",     "label": "No" }
+      ]
+    },
+    {
+      "name": "Questions",
+      "glowDuration": 60,
+      "color": "#fb923c",
+      "buttons": [
+        { "id": "q-drinks", "label": "Drinks?" },
+        { "id": "q-break",  "label": "Take a break?" }
+      ]
+    }
+  ]
+}
