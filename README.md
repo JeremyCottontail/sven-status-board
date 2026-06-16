@@ -12,12 +12,42 @@ A LAN-only real-time status board for teams who cannot communicate by voice. Ope
 
 ## Quick Start
 
+### macOS / Linux
+
 ```bash
 npm install
 npm start
 ```
 
 Open `http://<server-ip>:3000` in any browser on the LAN.
+
+### Windows
+
+1. **Install Node.js** — download and run the LTS installer from [nodejs.org](https://nodejs.org). Accept all defaults.
+
+2. **Open Command Prompt or PowerShell** in the project folder.  
+   (Shift-right-click the folder in Explorer → "Open in Terminal", or `cd` to it.)
+
+3. **Install dependencies and start the server:**
+
+   ```bat
+   npm install
+   npm start
+   ```
+
+4. **Allow Node.js through the firewall** — Windows will show a security prompt the first time. Click "Allow access" so other devices on the LAN can reach the server.
+
+5. **Find your local IP** — open a second terminal and run:
+
+   ```bat
+   ipconfig
+   ```
+
+   Look for the `IPv4 Address` under your active adapter (usually starts with `192.168.` or `10.`). The app also shows the IP:port in the top-right chip once it starts.
+
+6. Open `http://<your-ip>:3000` in any browser on the LAN.
+
+To stop the server, press `Ctrl+C` in the terminal.
 
 ## Configuration
 
