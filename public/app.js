@@ -15,6 +15,12 @@ const joinError = document.getElementById('join-error');
 const topBar = document.getElementById('top-bar');
 const buttonArea = document.getElementById('button-area');
 const historyList = document.getElementById('history-list');
+const logoutBtn = document.getElementById('logout-btn');
+const serverInfoChip = document.getElementById('server-info-chip');
+const qrLightbox = document.getElementById('qr-lightbox');
+const qrUrl = document.getElementById('qr-url');
+const qrImage = document.getElementById('qr-image');
+const qrClose = document.getElementById('qr-close');
 
 // --- Helpers ---
 
@@ -108,11 +114,11 @@ function createStatusPill(buttonId, label, color) {
 }
 
 function renderTopBar(clientsData) {
-  topBar.innerHTML = '';
+  topBar.querySelectorAll('.client-badge').forEach(el => el.remove());
   for (const clientData of clientsData) {
     clients.set(clientData.name, { activeStatuses: new Set(clientData.activeStatuses || []) });
     const badge = createClientBadge(clientData.name, clientData.activeStatuses || []);
-    topBar.appendChild(badge);
+    topBar.insertBefore(badge, serverInfoChip);
   }
 }
 
@@ -154,6 +160,8 @@ function handleInit(msg) {
   renderTopBar(msg.clients || []);
   renderHistory(msg.history || []);
 
+  sessionStorage.setItem('sven-name', localName);
+  logoutBtn.hidden = false;
   joinScreen.style.display = 'none';
   mainView.style.display = 'flex';
 }
@@ -161,7 +169,7 @@ function handleInit(msg) {
 function handleClientJoined(msg) {
   clients.set(msg.name, { activeStatuses: new Set() });
   const badge = createClientBadge(msg.name, []);
-  topBar.appendChild(badge);
+  topBar.insertBefore(badge, serverInfoChip);
 }
 
 function handleClientLeft(msg) {
@@ -305,4 +313,54 @@ joinBtn.addEventListener('click', attemptJoin);
 
 nameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') attemptJoin();
+});
+
+logoutBtn.addEventListener('click', () => {
+  sessionStorage.removeItem('sven-name');
+  logoutBtn.hidden = true;
+  if (ws) { ws.close(); ws = null; }
+  mainView.style.display = 'none';
+  joinScreen.style.display = 'flex';
+  joinBtn.disabled = false;
+  nameInput.disabled = false;
+  nameInput.value = '';
+  localName = null;
+  clients.clear();
+});
+
+// Auto-reconnect if name was saved from a previous load
+const savedName = sessionStorage.getItem('sven-name');
+if (savedName) {
+  nameInput.value = savedName;
+  connectAndJoin(savedName);
+}
+
+// --- Server Info & QR Lightbox ---
+
+fetch('/api/server-info')
+  .then(r => r.json())
+  .then(({ ip, port }) => {
+    serverInfoChip.textContent = `${ip}:${port}`;
+    serverInfoChip.hidden = false;
+    qrUrl.textContent = `http://${ip}:${port}`;
+  })
+  .catch(() => {}); // silently ignore if unavailable
+
+serverInfoChip.addEventListener('click', async () => {
+  if (qrImage.childElementCount === 0) {
+    const resp = await fetch('/api/qrcode');
+    const svg = await resp.text();
+    qrImage.innerHTML = svg;
+  }
+  qrLightbox.hidden = false;
+});
+
+function closeQr() {
+  qrLightbox.hidden = true;
+}
+
+qrClose.addEventListener('click', closeQr);
+qrLightbox.querySelector('.qr-backdrop').addEventListener('click', closeQr);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeQr();
 });

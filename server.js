@@ -5,6 +5,8 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const QRCode = require('qrcode');
 
 // ---------------------------------------------------------------------------
 // Config
@@ -76,8 +78,35 @@ function sendTo(ws, data) {
 // ---------------------------------------------------------------------------
 // Express + HTTP server
 // ---------------------------------------------------------------------------
+const PORT = process.env.PORT || 3000;
+
+function getLocalIP() {
+  for (const ifaces of Object.values(os.networkInterfaces())) {
+    for (const iface of ifaces) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
+
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/server-info', (req, res) => {
+  res.json({ ip: getLocalIP(), port: PORT });
+});
+
+app.get('/api/qrcode', async (req, res) => {
+  const url = `http://${getLocalIP()}:${PORT}`;
+  try {
+    const svg = await QRCode.toString(url, { type: 'svg', margin: 2, width: 256 });
+    res.type('image/svg+xml').send(svg);
+  } catch (e) {
+    res.status(500).send('QR generation failed');
+  }
+});
 
 const httpServer = http.createServer(app);
 
@@ -138,8 +167,13 @@ wss.on('connection', (ws) => {
         history,
       });
 
-      // Broadcast client_joined to all (including the new client)
-      broadcast({ type: 'client_joined', name });
+      // Broadcast client_joined to all other clients (new client already has itself in init)
+      const payload = JSON.stringify({ type: 'client_joined', name });
+      for (const [sock] of clients) {
+        if (sock !== ws && sock.readyState === sock.OPEN) {
+          sock.send(payload);
+        }
+      }
       return;
     }
 
@@ -304,7 +338,6 @@ wss.on('connection', (ws) => {
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
-const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Sven status board running at http://localhost:${PORT}`);
 });

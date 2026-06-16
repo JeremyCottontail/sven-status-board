@@ -18,6 +18,8 @@
   <div id="main-view">
     <div id="top-bar">
       <!-- JS renders client badges here -->
+      <button id="logout-btn" class="logout-btn" hidden>Logout</button>
+      <button id="server-info-chip" class="server-info-chip" hidden></button>
     </div>
     <div id="content-row">
       <div id="button-area">
@@ -29,6 +31,16 @@
           <!-- JS renders history entries here -->
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- QR Code Lightbox -->
+  <div id="qr-lightbox" class="qr-lightbox" hidden>
+    <div class="qr-backdrop"></div>
+    <div class="qr-modal">
+      <p id="qr-url" class="qr-url"></p>
+      <div id="qr-image" class="qr-image"></div>
+      <button id="qr-close" class="qr-close">Close</button>
     </div>
   </div>
 
