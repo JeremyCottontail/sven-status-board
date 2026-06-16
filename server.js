@@ -93,7 +93,7 @@ function getLocalIP() {
 }
 
 const app = express();
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); } }));
 
 app.get('/api/server-info', (req, res) => {
   res.json({ ip: getLocalIP(), port: PORT });

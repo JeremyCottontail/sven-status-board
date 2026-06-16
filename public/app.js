@@ -178,7 +178,7 @@ function handleInit(msg) {
   joinScreen.style.display = 'none';
   mainView.style.display = 'flex';
 
-  if (Notification.permission === 'default') {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 }
@@ -233,7 +233,7 @@ function handleStatusUpdate(msg) {
 }
 
 function handleHistoryAdd(msg) {
-  if (Notification.permission === 'granted' && msg.clientName !== localName) {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && msg.clientName !== localName) {
     new Notification(`${msg.clientName}: ${msg.label}`);
   }
 
@@ -319,10 +319,14 @@ function connectAndJoin(name) {
   };
 
   ws.onclose = () => {
-    // Only re-enable join UI if we never made it to main view
     if (mainView.style.display !== 'flex') {
+      // Never made it past join screen
       joinBtn.disabled = false;
       nameInput.disabled = false;
+    } else if (localName) {
+      // Unexpected drop while in session — reconnect
+      ws = null;
+      setTimeout(() => connectAndJoin(localName), 1500);
     }
   };
 }
