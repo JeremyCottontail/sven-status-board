@@ -125,6 +125,7 @@ function renderTopBar(clientsData) {
 function createHistoryEntry(entry) {
   const el = document.createElement('div');
   el.className = 'history-entry';
+  el.dataset.historyId = entry.id;
 
   const nameSpan = document.createElement('span');
   nameSpan.className = 'history-name';
@@ -142,6 +143,18 @@ function createHistoryEntry(entry) {
   el.appendChild(nameSpan);
   el.appendChild(labelSpan);
   el.appendChild(timeSpan);
+
+  if (entry.clientName === localName) {
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'history-delete-btn';
+    deleteBtn.title = 'Delete';
+    deleteBtn.textContent = '×';
+    deleteBtn.addEventListener('click', () => {
+      ws.send(JSON.stringify({ type: 'history_delete', id: entry.id }));
+    });
+    el.appendChild(deleteBtn);
+  }
+
   return el;
 }
 
@@ -164,6 +177,10 @@ function handleInit(msg) {
   logoutBtn.hidden = false;
   joinScreen.style.display = 'none';
   mainView.style.display = 'flex';
+
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
 
 function handleClientJoined(msg) {
@@ -216,6 +233,10 @@ function handleStatusUpdate(msg) {
 }
 
 function handleHistoryAdd(msg) {
+  if (Notification.permission === 'granted' && msg.clientName !== localName) {
+    new Notification(`${msg.clientName}: ${msg.label}`);
+  }
+
   const entry = createHistoryEntry(msg);
   historyList.insertBefore(entry, historyList.firstChild);
 
@@ -223,6 +244,11 @@ function handleHistoryAdd(msg) {
   while (historyList.children.length > 200) {
     historyList.removeChild(historyList.lastChild);
   }
+}
+
+function handleHistoryDeleted(msg) {
+  const el = historyList.querySelector(`[data-history-id="${msg.id}"]`);
+  if (el) el.remove();
 }
 
 function handleError(msg) {
@@ -271,6 +297,9 @@ function connectAndJoin(name) {
         break;
       case 'history_add':
         handleHistoryAdd(msg);
+        break;
+      case 'history_deleted':
+        handleHistoryDeleted(msg);
         break;
       case 'error':
         handleError(msg);

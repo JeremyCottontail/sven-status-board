@@ -19,10 +19,11 @@ const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), '
 /** @type {Map<import('ws').WebSocket, { name: string, activeStatuses: Map<string, ReturnType<typeof setTimeout>|null> }>} */
 const clients = new Map();
 
-/** @type {Array<{ clientName: string, buttonId: string, label: string, groupColor: string, timestamp: string }>} */
+/** @type {Array<{ id: number, clientName: string, buttonId: string, label: string, groupColor: string, timestamp: string }>} */
 const history = [];
 
 const HISTORY_CAP = 200;
+let nextHistoryId = 1;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -254,6 +255,7 @@ wss.on('connection', (ws) => {
 
         // Add history entry
         const entry = {
+          id: nextHistoryId++,
           clientName: clientInfo.name,
           buttonId,
           label,
@@ -267,6 +269,7 @@ wss.on('connection', (ws) => {
 
         broadcast({
           type: 'history_add',
+          id: entry.id,
           clientName: entry.clientName,
           label: entry.label,
           groupColor: entry.groupColor,
@@ -308,6 +311,34 @@ wss.on('connection', (ws) => {
         groupColor: group.color,
         active: false,
       });
+
+      return;
+    }
+
+    // -----------------------------------------------------------------------
+    // history_delete
+    // -----------------------------------------------------------------------
+    if (msg.type === 'history_delete') {
+      const { id } = msg;
+      if (!id) return;
+
+      const idx = history.findIndex(e => e.id === id);
+      if (idx === -1) return;
+
+      // Only the entry's author can delete it
+      if (history[idx].clientName !== clientInfo.name) return;
+
+      const { buttonId, label, groupColor } = history[idx];
+      history.splice(idx, 1);
+      broadcast({ type: 'history_deleted', id });
+
+      // If the button is still active for this client, cancel it
+      if (clientInfo.activeStatuses.has(buttonId)) {
+        const handle = clientInfo.activeStatuses.get(buttonId);
+        if (handle !== null && handle !== undefined) clearTimeout(handle);
+        clientInfo.activeStatuses.delete(buttonId);
+        broadcast({ type: 'status_update', clientName: clientInfo.name, buttonId, label, groupColor, active: false });
+      }
 
       return;
     }
