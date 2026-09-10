@@ -9,6 +9,27 @@ const os = require('os');
 const QRCode = require('qrcode');
 
 // ---------------------------------------------------------------------------
+// .env (no external dependency — just enough to read simple KEY=VALUE lines)
+// ---------------------------------------------------------------------------
+function loadEnvFile() {
+  const envPath = path.join(__dirname, '.env');
+  if (!fs.existsSync(envPath)) return;
+  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+loadEnvFile();
+
+// ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
@@ -82,7 +103,21 @@ function sendTo(ws, data) {
 const PORT = process.env.PORT || 3000;
 
 function getLocalIP() {
-  for (const ifaces of Object.values(os.networkInterfaces())) {
+  // Explicit override, e.g. HOST=192.168.1.50 in .env
+  if (process.env.HOST) return process.env.HOST;
+
+  const interfaces = os.networkInterfaces();
+
+  // Prefer a specific adapter, e.g. NETWORK_INTERFACE=en0 (macOS Wi-Fi) or
+  // NETWORK_INTERFACE=Wi-Fi (Windows), when multiple adapters are active
+  // (e.g. Ethernet plugged in alongside Wi-Fi).
+  const preferred = process.env.NETWORK_INTERFACE;
+  if (preferred && interfaces[preferred]) {
+    const match = interfaces[preferred].find((iface) => iface.family === 'IPv4' && !iface.internal);
+    if (match) return match.address;
+  }
+
+  for (const ifaces of Object.values(interfaces)) {
     for (const iface of ifaces) {
       if (iface.family === 'IPv4' && !iface.internal) {
         return iface.address;

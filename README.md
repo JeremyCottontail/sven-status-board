@@ -51,6 +51,25 @@ To stop the server, press `Ctrl+C` in the terminal.
 
 ## Configuration
 
+### Network / port
+
+By default the server picks the first non-internal IPv4 address it finds, which can be the wrong one if both Wi-Fi and Ethernet are connected at the same time. To control this, copy `.env.example` to `.env` and set one of:
+
+```bash
+# Pin the adapter by name (macOS: `ifconfig`, e.g. en0 = Wi-Fi; Windows: `ipconfig`, e.g. "Wi-Fi")
+NETWORK_INTERFACE=en0
+
+# Or hardcode the IP shown in the UI / QR code directly (takes priority over NETWORK_INTERFACE)
+HOST=192.168.1.50
+
+# Optionally override the port
+PORT=3000
+```
+
+`.env` is gitignored and read automatically on startup — no extra dependency or flags needed.
+
+### Buttons
+
 Edit `config.json` to customize button groups. Changes require a server restart.
 
 ```json
